@@ -1,4 +1,3 @@
-#include <time.h>
 #include <iostream>
 using namespace std;
 #include "wg/sqlite/database.h"
