@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <functional>
 
 namespace wg
 {
@@ -16,6 +17,10 @@ namespace wg
 			WG_USE_STRING; // include std::string
 			WG_USE(vector);
 			WG_USE(stringstream);
+
+#ifdef WG_Cpp11
+			typedef std::function<void(void)> select_callback;
+#endif
 
 			class SelectTransaction
 			{
@@ -32,7 +37,10 @@ namespace wg
 				SelectTransaction* andWhere(string field, string eq, string val); // select what field has to match what value
 				SelectTransaction* andWhere(string field, string val); // select what field has to match what value
 				const string build();
+				bool hasCallback();
+				void callback(select_callback &handler);
 			private:
+				select_callback *_callback = WG_NULL;
                 string _current;
 				vector<wg_table*> *_tables = NULL;
 				vector<string> *_selects = NULL;

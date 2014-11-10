@@ -15,6 +15,7 @@ SelectTransaction::~SelectTransaction()
 	delete this->_selects;
 	delete this->_tables;
 	delete this->_wheres;
+	delete this->_callback;
 }
 
 SelectTransaction* SelectTransaction::from(string table)
@@ -132,4 +133,14 @@ const string SelectTransaction::build()
 	}
 	_sql << ";";
 	return _sql.str();
+}
+
+bool SelectTransaction::hasCallback()
+{
+	return (this->_callback == WG_NULL);
+}
+
+void SelectTransaction::callback(select_callback &handler)
+{
+	this->_callback = &handler;
 }

@@ -16,6 +16,7 @@ InsertTransaction::InsertTransaction(string name) : _name(name)
 InsertTransaction::~InsertTransaction()
 {
 	delete this->_fields;
+	delete this->_callback;
 }
 
 
@@ -48,4 +49,14 @@ const string InsertTransaction::build()
 		_sql << "'" << (*it)->value << "'" << (WG_LAST_ITER_PTR(it, this->_fields) ? "" : ", ");
 	_sql << ");";
 	return _sql.str();
+}
+
+bool InsertTransaction::hasCallback()
+{
+	return (this->_callback == WG_NULL);
+}
+
+void InsertTransaction::callback(insert_callback &handler)
+{
+	this->_callback = &handler;
 }

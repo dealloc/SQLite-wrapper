@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <functional>
 #include "../../wg_utils.h"
 #include "../structs.h"
 
@@ -17,6 +18,10 @@ namespace wg
 			WG_USE(vector);
 			WG_USE(stringstream);
 
+#ifdef WG_Cpp11
+			typedef std::function<void(int, string)> insert_callback;
+#endif
+
 			class InsertTransaction
 			{
 			public:
@@ -26,7 +31,10 @@ namespace wg
 				InsertTransaction* insert(string field, string value);
 				InsertTransaction* insert(string field, int value);
 				const string build();
+				bool hasCallback();
+				void callback(insert_callback &handler);
 			private:
+				insert_callback	*_callback = WG_NULL;
 				const string _name;
 				vector<wg_field*> *_fields;
 			};

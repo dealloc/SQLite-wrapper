@@ -6,6 +6,7 @@
 #include <sstream>
 #include "../../wg_utils.h"
 #include "../builders/column.h"
+#include <functional>
 
 #define WG_SQLITE_VARCHAR "TEXT"
 #define WG_SQLITE_INTEGER "INTEGER"
@@ -22,6 +23,12 @@ namespace wg
 			WG_USE(stringstream);
 			using wg::sqlite::builders::Column;
 
+#ifdef WG_Cpp11
+			typedef std::function<void(int, string)> create_callback;
+#else
+			//TODO write function pointer typedef
+#endif
+
 			class CreateTransaction
 			{
 			public:
@@ -33,7 +40,10 @@ namespace wg
 				Column* integer(string field);
 				Column* boolean(string field);
 				const string build();
+				bool hasCallback();
+				void callback(create_callback &handler);
 			private:
+				create_callback *_callback = WG_NULL;
 				vector<Column*> *_columns;
 				string _name;
                 bool _gaurd;

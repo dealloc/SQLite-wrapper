@@ -15,6 +15,7 @@ CreateTransaction::CreateTransaction(string table) : _name(table)
 CreateTransaction::~CreateTransaction()
 {
 	delete this->_columns;
+	delete this->_callback;
 }
 
 CreateTransaction* CreateTransaction::gaurd()
@@ -64,4 +65,14 @@ const string CreateTransaction::build()
 	}
 	_sql << ");";
 	return _sql.str();
+}
+
+bool CreateTransaction::hasCallback()
+{
+	return (this->_callback == WG_NULL);
+}
+
+void CreateTransaction::callback(create_callback &callback)
+{
+	this->_callback = &callback;
 }

@@ -19,6 +19,7 @@ UpdateTransaction::~UpdateTransaction()
 {
 	delete this->_fields;
 	delete this->_wheres;
+	delete this->_callback;
 }
 
 UpdateTransaction* UpdateTransaction::set(string name, string value)
@@ -115,4 +116,13 @@ const string UpdateTransaction::build()
 	}
 	_sql << ";";
 	return _sql.str();
+}
+
+bool UpdateTransaction::hasCallback()
+{
+	return (this->_callback == WG_NULL);
+}
+void UpdateTransaction::callback(update_callback &handler)
+{
+	this->_callback = &handler;
 }
