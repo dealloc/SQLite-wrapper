@@ -46,7 +46,7 @@ void Database::commit()
 void Database::execute(const string sql)
 {
 	// WG_LOG(sql);
-	int status = sqlite3_exec(this->_db, sql.c_str(), Database::_callback, NULL, &this->_errors);
+	int status = sqlite3_exec(this->_db, sql.c_str(), Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
@@ -115,7 +115,37 @@ UpdateTransaction* Database::update(string name, function<void(UpdateTransaction
 
 #else
 
-// TODO: old school function pointers come here
+SelectTransaction* Database::query(void(*callback)(SelectTransaction*))
+{
+	SelectTransaction* transaction = new SelectTransaction();
+	this->_selects->push_back(transaction);
+	callback(transaction);
+	return transaction;
+}
+
+CreateTransaction* Database::create(string name, void(*callback)(CreateTransaction*))
+{
+	CreateTransaction* transaction = new CreateTransaction(name);
+	this->_creates->push_back(transaction);
+	callback(transaction);
+	return transaction;
+}
+
+InsertTransaction* Database::insert(string name, void(*callback)(InsertTransaction*))
+{
+	InsertTransaction* transaction = new InsertTransaction(name);
+	this->_inserts->push_back(transaction);
+	callback(transaction);
+	return transaction;
+}
+
+UpdateTransaction* Database::update(string name, void(*callback)(UpdateTransaction*))
+{
+	UpdateTransaction* transaction = new UpdateTransaction(name);
+	this->_updates->push_back(transaction);
+	callback(transaction);
+	return transaction;
+}
 
 #endif
 
@@ -123,6 +153,6 @@ int Database::_callback(void* resp, int rowc, char** fields, char** columns)
 {
 	map<string, string> &result = (map<string, string>&)resp;
 	for (int i = 0; i < rowc; i++) // TODO: insert into rows
-		result[columns[i]] = fields[i];
+		result[columns[i]] = fields[i]; // TODO throws exception
 	return SQLITE_OK;
 }

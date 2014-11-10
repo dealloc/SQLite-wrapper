@@ -28,6 +28,12 @@
 #define WG_Cpp11
 #endif
 
+#ifdef WG_Cpp11
+#define WG_NULL nullptr
+#else
+#define WG_NULL NULL
+#endif
+
 // create an iterator with a name for a type
 #define WG_ITER(name, type) type::iterator name;
 
