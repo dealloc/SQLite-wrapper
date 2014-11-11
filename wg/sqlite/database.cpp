@@ -31,22 +31,57 @@ void Database::commit()
 {
 
 	WG_ITERATE_PTR(it, vector<CreateTransaction*>, this->_creates)
-		execute((*it)->build());
+		exec_create(*it);
 
 	WG_ITERATE_PTR(it, vector<InsertTransaction*>, this->_inserts)
-		execute((*it)->build());
+		exec_insert(*it);
 
 	WG_ITERATE_PTR(it, vector<UpdateTransaction*>, this->_updates)
-		execute((*it)->build());
+		exec_update(*it);
 
 	WG_ITERATE_PTR(it, vector<SelectTransaction*>, this->_selects)
-		execute((*it)->build());
+		exec_query(*it);
 }
 
-void Database::execute(const string sql)
+void Database::execute(const string sql, wg_raw_callback handler)
 {
-	// WG_LOG(sql);
-	int status = sqlite3_exec(this->_db, sql.c_str(), Database::_callback, WG_NULL, &this->_errors);
+	int status = sqlite3_exec(this->_db, sql.c_str(), handler, WG_NULL, &this->_errors);
+	if (status != SQLITE_OK)
+		WG_LOG(sqlite3_errmsg(this->_db));
+}
+
+void Database::execute(const string sql, wg_raw_callback handler, void* obj)
+{
+	int status = sqlite3_exec(this->_db, sql.c_str(), handler, obj, &this->_errors);
+	if (status != SQLITE_OK)
+		WG_LOG(sqlite3_errmsg(this->_db));
+}
+
+
+void Database::exec_query(SelectTransaction* transaction)
+{
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_select_callback, &transaction->getCallback(), &this->_errors);
+	if (status != SQLITE_OK)
+		WG_LOG(sqlite3_errmsg(this->_db));
+}
+
+void Database::exec_create(CreateTransaction* transaction)
+{
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_create_callback, &transaction->getCallback(), &this->_errors);
+	if (status != SQLITE_OK)
+		WG_LOG(sqlite3_errmsg(this->_db));
+}
+
+void Database::exec_insert(InsertTransaction* transaction)
+{
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_insert_callback, &transaction->getCallback(), &this->_errors);
+	if (status != SQLITE_OK)
+		WG_LOG(sqlite3_errmsg(this->_db));
+}
+
+void Database::exec_update(UpdateTransaction* transaction)
+{
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_update_callback, &transaction->getCallback(), &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
@@ -149,10 +184,26 @@ UpdateTransaction* Database::update(string name, void(*callback)(UpdateTransacti
 
 #endif
 
-int Database::_callback(void* resp, int rowc, char** fields, char** columns)
+int Database::_select_callback(void* resp, int rowc, char** fields, char** columns)
 {
-	map<string, string> &result = (map<string, string>&)resp;
-	for (int i = 0; i < rowc; i++) // TODO: insert into rows
-		result[columns[i]] = fields[i]; // TODO throws exception
+	select_callback &callback = (select_callback&)resp; // TODO: call callback
+	return SQLITE_OK;
+}
+
+int Database::_create_callback(void* resp, int rowc, char** fields, char** columns)
+{
+	create_callback &callback = (create_callback&)resp; // TODO: call callback
+	return SQLITE_OK;
+}
+
+int Database::_insert_callback(void* resp, int rowc, char** fields, char** columns)
+{
+	insert_callback &callback = (insert_callback&)resp; // TODO: call callback
+	return SQLITE_OK;
+}
+
+int Database::_update_callback(void* resp, int rowc, char** fields, char** columns)
+{
+	update_callback &callback = (update_callback&)resp; // TODO: call callback
 	return SQLITE_OK;
 }

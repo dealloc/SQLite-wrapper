@@ -39,6 +39,7 @@ namespace wg
 				const string build();
 				bool hasCallback();
 				void callback(select_callback &handler);
+				select_callback getCallback();
 			private:
 				select_callback *_callback = WG_NULL;
                 string _current;

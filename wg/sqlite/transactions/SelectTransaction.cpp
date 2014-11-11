@@ -144,3 +144,8 @@ void SelectTransaction::callback(select_callback &handler)
 {
 	this->_callback = &handler;
 }
+
+select_callback SelectTransaction::getCallback()
+{
+	return *this->_callback;
+}

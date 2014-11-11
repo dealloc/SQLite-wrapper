@@ -18,9 +18,7 @@ namespace wg
 			WG_USE(vector);
 			WG_USE(stringstream);
 
-#ifdef WG_Cpp11
-			typedef std::function<void(int, string)> update_callback;
-#endif
+			typedef std::function<void(int)> update_callback;
 
 			class UpdateTransaction
 			{
@@ -38,6 +36,7 @@ namespace wg
 				const string build();
 				bool hasCallback();
 				void callback(update_callback &handler);
+				update_callback getCallback();
 			private:
 				update_callback* _callback = WG_NULL;
 				const string _name;

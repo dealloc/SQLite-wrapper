@@ -24,7 +24,7 @@ namespace wg
 			using wg::sqlite::builders::Column;
 
 #ifdef WG_Cpp11
-			typedef std::function<void(int, string)> create_callback;
+			typedef std::function<void(string)> create_callback;
 #else
 			//TODO write function pointer typedef
 #endif
@@ -42,6 +42,7 @@ namespace wg
 				const string build();
 				bool hasCallback();
 				void callback(create_callback &handler);
+				create_callback getCallback();
 			private:
 				create_callback *_callback = WG_NULL;
 				vector<Column*> *_columns;

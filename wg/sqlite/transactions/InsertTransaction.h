@@ -18,9 +18,7 @@ namespace wg
 			WG_USE(vector);
 			WG_USE(stringstream);
 
-#ifdef WG_Cpp11
-			typedef std::function<void(int, string)> insert_callback;
-#endif
+			typedef std::function<void(int)> insert_callback;
 
 			class InsertTransaction
 			{
@@ -33,8 +31,9 @@ namespace wg
 				const string build();
 				bool hasCallback();
 				void callback(insert_callback &handler);
+				insert_callback getCallback();
 			private:
-				insert_callback	*_callback = WG_NULL;
+				insert_callback *_callback = WG_NULL;
 				const string _name;
 				vector<wg_field*> *_fields;
 			};

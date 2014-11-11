@@ -27,12 +27,19 @@ namespace wg
         WG_USE(function);
 #endif
 		
-		typedef std::vector<std::map<string, string>>* resultset;
+		typedef int(wg_raw_callback)(void*, int, char**, char**);
 
 		using wg::sqlite::transactions::SelectTransaction;
+		using wg::sqlite::transactions::select_callback;
+
 		using wg::sqlite::transactions::CreateTransaction;
+		using wg::sqlite::transactions::create_callback;
+
 		using wg::sqlite::transactions::InsertTransaction;
+		using wg::sqlite::transactions::insert_callback;
+
 		using wg::sqlite::transactions::UpdateTransaction;
+		using wg::sqlite::transactions::update_callback;
 
         class Database
         {
@@ -41,7 +48,8 @@ namespace wg
 			Database(const string name); // create a new database with given name (empty for in-memory database)
 			~Database(); // destructor; clean up all used resources
 			void commit(); // execute all pending transactions
-			void execute(const string sql); // execute raw SQL queries
+			void execute(const string sql, wg_raw_callback handler); // execute raw SQL queries
+			void execute(const string sql, wg_raw_callback handler, void* obj); // execute raw SQL queries and pass object to callback
 			SelectTransaction* query(); // push a select query onto the queque
 			CreateTransaction* create(string name); // push a create query onto the queque
 			InsertTransaction* insert(string name); // push an insert query onto the queque
@@ -58,13 +66,20 @@ namespace wg
 			UpdateTransaction* update(string name, void(*callback)(UpdateTransaction*)); // allows for building update queries using function pointer callbacks
 #endif
 		private:
+			void exec_query(SelectTransaction* transaction);
+			void exec_create(CreateTransaction* transaction);
+			void exec_insert(InsertTransaction* transaction);
+			void exec_update(UpdateTransaction* transaction);
 			vector<SelectTransaction*> *_selects;
 			vector<CreateTransaction*> *_creates;
 			vector<InsertTransaction*> *_inserts;
 			vector<UpdateTransaction*> *_updates;
 			sqlite3* _db = WG_NULL;
 			char* _errors = WG_NULL;
-            static int _callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
+			static int _select_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
+			static int _create_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
+			static int _insert_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
+			static int _update_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
         };
     }
 }

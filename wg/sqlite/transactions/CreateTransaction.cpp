@@ -76,3 +76,8 @@ void CreateTransaction::callback(create_callback &callback)
 {
 	this->_callback = &callback;
 }
+
+create_callback CreateTransaction::getCallback()
+{
+	return *this->_callback;
+}

@@ -60,3 +60,8 @@ void InsertTransaction::callback(insert_callback &handler)
 {
 	this->_callback = &handler;
 }
+
+insert_callback InsertTransaction::getCallback()
+{
+	return *this->_callback;
+}

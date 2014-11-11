@@ -122,7 +122,13 @@ bool UpdateTransaction::hasCallback()
 {
 	return (this->_callback == WG_NULL);
 }
+
 void UpdateTransaction::callback(update_callback &handler)
 {
 	this->_callback = &handler;
+}
+
+update_callback UpdateTransaction::getCallback()
+{
+	return *this->_callback;
 }
