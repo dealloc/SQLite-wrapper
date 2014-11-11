@@ -26,7 +26,7 @@ namespace wg
 #ifdef WG_Cpp11
 			typedef std::function<void(string)> create_callback;
 #else
-			//TODO write function pointer typedef
+			typedef void(*create_callback)(string);
 #endif
 
 			class CreateTransaction

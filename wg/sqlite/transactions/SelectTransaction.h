@@ -20,6 +20,8 @@ namespace wg
 
 #ifdef WG_Cpp11
 			typedef std::function<void(void)> select_callback;
+#else
+			typedef void(*select_callback)(void);
 #endif
 
 			class SelectTransaction

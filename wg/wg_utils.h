@@ -2,6 +2,7 @@
 #define WG_UTILS_H
 
 #include <iostream>
+#include <functional>
 #include <stdlib.h>
 
 #ifndef WG_DEBUG

@@ -18,7 +18,11 @@ namespace wg
 			WG_USE(vector);
 			WG_USE(stringstream);
 
+#ifdef WG_Cpp11
 			typedef std::function<void(int)> insert_callback;
+#else
+			typedef void(*insert_callback)(int);
+#endif
 
 			class InsertTransaction
 			{

@@ -38,6 +38,7 @@ int main()
 		table->from("users");
 		table->select("username");
 	});
+	
 	db->commit();
 	return 0;
 }
