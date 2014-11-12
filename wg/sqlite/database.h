@@ -70,16 +70,14 @@ namespace wg
 			void exec_create(CreateTransaction* transaction);
 			void exec_insert(InsertTransaction* transaction);
 			void exec_update(UpdateTransaction* transaction);
-			vector<SelectTransaction*> *_selects;
-			vector<CreateTransaction*> *_creates;
-			vector<InsertTransaction*> *_inserts;
-			vector<UpdateTransaction*> *_updates;
+			vector<SelectTransaction*> *_selects = WG_NULL;
+			vector<CreateTransaction*> *_creates = WG_NULL;
+			vector<InsertTransaction*> *_inserts = WG_NULL;
+			vector<UpdateTransaction*> *_updates = WG_NULL;
 			sqlite3* _db = WG_NULL;
 			char* _errors = WG_NULL;
-			static int _select_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
-			static int _create_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
-			static int _insert_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
-			static int _update_callback(void* resp, int rowc, char** fields, char** columns); // general callback for SQLite
+			static int _callback(void* resp, int rowc, char** fields, char** columns); // internal hook for SELECT callbacks
+			static void _update_hook(void*, int, char const *, char const *, sqlite3_int64); // internal hook for update (INSERT, DELETE & UPDATE)
         };
     }
 }

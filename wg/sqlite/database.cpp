@@ -60,28 +60,31 @@ void Database::execute(const string sql, wg_raw_callback handler, void* obj)
 
 void Database::exec_query(SelectTransaction* transaction)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_select_callback, &transaction->getCallback(), &this->_errors);
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &transaction->getCallback(), &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
 
 void Database::exec_create(CreateTransaction* transaction)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_create_callback, &transaction->getCallback(), &this->_errors);
+	// sqlite3_update_hook(this->_db, Database::_update_hook, &transaction->getCallback()); // install update hook
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
 
 void Database::exec_insert(InsertTransaction* transaction)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_insert_callback, &transaction->getCallback(), &this->_errors);
+	// sqlite3_update_hook(this->_db, Database::_update_hook, &transaction->getCallback()); // install update hook
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &transaction->getCallback(), &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
 
 void Database::exec_update(UpdateTransaction* transaction)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_update_callback, &transaction->getCallback(), &this->_errors);
+	sqlite3_update_hook(this->_db, Database::_update_hook, &transaction->getCallback()); // install update hook
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &transaction->getCallback(), &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
@@ -184,26 +187,40 @@ UpdateTransaction* Database::update(string name, void(*callback)(UpdateTransacti
 
 #endif
 
-int Database::_select_callback(void* resp, int rowc, char** fields, char** columns)
+int Database::_callback(void* resp, int rowc, char** fields, char** columns)
 {
 	select_callback &callback = (select_callback&)resp; // TODO: call callback
+	cout << "[SELECT] rowc: " << rowc << endl;
 	return SQLITE_OK;
 }
 
-int Database::_create_callback(void* resp, int rowc, char** fields, char** columns)
+void Database::_update_hook(void* callback, int type, char const * db, char const * table, sqlite3_int64 rowid)
 {
-	create_callback &callback = (create_callback&)resp; // TODO: call callback
-	return SQLITE_OK;
-}
-
-int Database::_insert_callback(void* resp, int rowc, char** fields, char** columns)
-{
-	insert_callback &callback = (insert_callback&)resp; // TODO: call callback
-	return SQLITE_OK;
-}
-
-int Database::_update_callback(void* resp, int rowc, char** fields, char** columns)
-{
-	update_callback &callback = (update_callback&)resp; // TODO: call callback
-	return SQLITE_OK;
+	switch (type)
+	{
+	case SQLITE_INSERT:
+	{
+		insert_callback* handler = (insert_callback*)callback;
+		(*handler)(static_cast<int>(rowid)); // avoid loss of data warning
+		break;
+	}
+	case SQLITE_DELETE:
+	{
+		create_callback* handler = (create_callback*)callback; // I know it doesn't make sense but I forgot the delete ^^'
+		(*handler)(string(db)); // avoid loss of data warning
+		break;
+	}
+	case SQLITE_UPDATE:
+	{
+		update_callback handler = *static_cast<update_callback*>(callback);
+		handler(static_cast<int>(rowid)); // avoid loss of data warning
+		break;
+	}
+	default:
+	{
+		create_callback* handler = (create_callback*)callback; // I know it doesn't make sense but I forgot the delete ^^'
+		(*handler)(string(db)); // avoid loss of data warning
+		break;
+	}
+	}
 }
