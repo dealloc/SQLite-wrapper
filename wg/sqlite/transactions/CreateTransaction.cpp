@@ -72,7 +72,7 @@ bool CreateTransaction::hasCallback()
 	return (this->_callback == WG_NULL);
 }
 
-void CreateTransaction::callback(create_callback &callback)
+void CreateTransaction::callback(create_callback callback)
 {
 	this->_callback = &callback;
 }

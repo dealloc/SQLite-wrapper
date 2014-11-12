@@ -56,7 +56,7 @@ bool InsertTransaction::hasCallback()
 	return (this->_callback == WG_NULL);
 }
 
-void InsertTransaction::callback(insert_callback &handler)
+void InsertTransaction::callback(insert_callback handler)
 {
 	this->_callback = &handler;
 }

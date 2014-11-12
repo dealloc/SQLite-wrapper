@@ -41,7 +41,7 @@ namespace wg
 				Column* boolean(string field);
 				const string build();
 				bool hasCallback();
-				void callback(create_callback &handler);
+				void callback(create_callback handler);
 				create_callback getCallback();
 			private:
 				create_callback *_callback = WG_NULL;

@@ -40,7 +40,7 @@ namespace wg
 				SelectTransaction* andWhere(string field, string val); // select what field has to match what value
 				const string build();
 				bool hasCallback();
-				void callback(select_callback &handler);
+				void callback(select_callback handler);
 				select_callback getCallback();
 			private:
 				select_callback *_callback = WG_NULL;

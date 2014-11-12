@@ -34,7 +34,7 @@ namespace wg
 				InsertTransaction* insert(string field, int value);
 				const string build();
 				bool hasCallback();
-				void callback(insert_callback &handler);
+				void callback(insert_callback handler);
 				insert_callback getCallback();
 			private:
 				insert_callback *_callback = WG_NULL;

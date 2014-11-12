@@ -39,7 +39,7 @@ namespace wg
 				UpdateTransaction* andWhere(string field, string val); // select what field has to match what value
 				const string build();
 				bool hasCallback();
-				void callback(update_callback &handler);
+				void callback(update_callback handler);
 				update_callback getCallback();
 			private:
 				update_callback* _callback = WG_NULL;

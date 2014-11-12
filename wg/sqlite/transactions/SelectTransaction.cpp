@@ -140,7 +140,7 @@ bool SelectTransaction::hasCallback()
 	return (this->_callback == WG_NULL);
 }
 
-void SelectTransaction::callback(select_callback &handler)
+void SelectTransaction::callback(select_callback handler)
 {
 	this->_callback = &handler;
 }
