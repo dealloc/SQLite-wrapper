@@ -15,7 +15,6 @@ SelectTransaction::~SelectTransaction()
 	delete this->_selects;
 	delete this->_tables;
 	delete this->_wheres;
-	delete this->_callback;
 }
 
 SelectTransaction* SelectTransaction::from(string table)
@@ -142,10 +141,10 @@ bool SelectTransaction::hasCallback()
 
 void SelectTransaction::callback(select_callback handler)
 {
-	this->_callback = &handler;
+	this->_callback = handler;
 }
 
 select_callback SelectTransaction::getCallback()
 {
-	return *this->_callback;
+	return this->_callback;
 }

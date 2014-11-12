@@ -16,7 +16,6 @@ InsertTransaction::InsertTransaction(string name) : _name(name)
 InsertTransaction::~InsertTransaction()
 {
 	delete this->_fields;
-	delete this->_callback;
 }
 
 
@@ -58,10 +57,10 @@ bool InsertTransaction::hasCallback()
 
 void InsertTransaction::callback(insert_callback handler)
 {
-	this->_callback = &handler;
+	this->_callback = handler;
 }
 
 insert_callback InsertTransaction::getCallback()
 {
-	return *this->_callback;
+	return this->_callback;
 }

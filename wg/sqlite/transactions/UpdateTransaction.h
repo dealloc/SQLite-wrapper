@@ -42,10 +42,10 @@ namespace wg
 				void callback(update_callback handler);
 				update_callback getCallback();
 			private:
-				update_callback* _callback = WG_NULL;
+				update_callback _callback;
 				const string _name;
-				vector<wg_field*> *_fields;
-				vector<wg_where*> *_wheres;
+				vector<wg_field*> *_fields = WG_NULL;
+				vector<wg_where*> *_wheres = WG_NULL;
 			};
 		}
 	}

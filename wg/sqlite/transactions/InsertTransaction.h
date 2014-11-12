@@ -37,9 +37,9 @@ namespace wg
 				void callback(insert_callback handler);
 				insert_callback getCallback();
 			private:
-				insert_callback *_callback = WG_NULL;
+				insert_callback _callback;
 				const string _name;
-				vector<wg_field*> *_fields;
+				vector<wg_field*> *_fields = WG_NULL;
 			};
 		}
 	}

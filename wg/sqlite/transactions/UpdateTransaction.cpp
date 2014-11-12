@@ -19,7 +19,6 @@ UpdateTransaction::~UpdateTransaction()
 {
 	delete this->_fields;
 	delete this->_wheres;
-	delete this->_callback;
 }
 
 UpdateTransaction* UpdateTransaction::set(string name, string value)
@@ -125,10 +124,10 @@ bool UpdateTransaction::hasCallback()
 
 void UpdateTransaction::callback(update_callback handler)
 {
-	this->_callback = &handler;
+	this->_callback = handler;
 }
 
 update_callback UpdateTransaction::getCallback()
 {
-	return *this->_callback;
+	return this->_callback;
 }

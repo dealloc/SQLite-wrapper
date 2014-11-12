@@ -7,10 +7,12 @@
 #include "../../wg_utils.h"
 #include "../builders/column.h"
 #include <functional>
-
 #define WG_SQLITE_VARCHAR "TEXT"
 #define WG_SQLITE_INTEGER "INTEGER"
 #define WG_SQLITE_BOOLEAN WG_SQLITE_INTEGER
+
+#include <iostream>
+using std::cout;using std::endl;
 
 namespace wg
 {
@@ -41,11 +43,11 @@ namespace wg
 				Column* boolean(string field);
 				const string build();
 				bool hasCallback();
-				void callback(create_callback handler);
-				create_callback getCallback();
+				void callback(std::function<void(string)> handler);
+				std::function<void(string)> getCallback();
 			private:
-				create_callback *_callback = WG_NULL;
-				vector<Column*> *_columns;
+				create_callback _callback;
+				vector<Column*> *_columns = WG_NULL;
 				string _name;
                 bool _gaurd;
 			};

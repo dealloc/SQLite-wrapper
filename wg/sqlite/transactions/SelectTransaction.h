@@ -43,11 +43,11 @@ namespace wg
 				void callback(select_callback handler);
 				select_callback getCallback();
 			private:
-				select_callback *_callback = WG_NULL;
+				select_callback _callback = WG_NULL;
                 string _current;
-				vector<wg_table*> *_tables = NULL;
-				vector<string> *_selects = NULL;
-				vector<wg_where*> *_wheres = NULL;
+				vector<wg_table*> *_tables = WG_NULL;
+				vector<string> *_selects = WG_NULL;
+				vector<wg_where*> *_wheres = WG_NULL;
 			};
 		}
 	}

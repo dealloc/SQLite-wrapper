@@ -15,7 +15,6 @@ CreateTransaction::CreateTransaction(string table) : _name(table)
 CreateTransaction::~CreateTransaction()
 {
 	delete this->_columns;
-	delete this->_callback;
 }
 
 CreateTransaction* CreateTransaction::gaurd()
@@ -72,12 +71,12 @@ bool CreateTransaction::hasCallback()
 	return (this->_callback == WG_NULL);
 }
 
-void CreateTransaction::callback(create_callback callback)
+void CreateTransaction::callback(std::function<void(string)> callback)
 {
-	this->_callback = &callback;
+	this->_callback = callback;
 }
 
-create_callback CreateTransaction::getCallback()
+std::function<void(string)> CreateTransaction::getCallback()
 {
-	return *this->_callback;
+	return this->_callback;
 }
