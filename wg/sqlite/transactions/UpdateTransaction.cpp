@@ -55,5 +55,5 @@ const string UpdateTransaction::build()
 
 inline void UpdateTransaction::_prefix(string &field)
 {
-	WG_SQLITE_PREFIX(field, this->_name);
+	// prefixing in an update statement causes errors
 }

@@ -28,6 +28,7 @@ Queryable* Queryable::where(string field, string val)
 	wg_where* where = new wg_where();
 	where->field = field;
 	where->value = val;
+	where->eq = "=";
 	this->_wheres->push_back(where);
 	return this;
 }
@@ -37,6 +38,7 @@ Queryable* Queryable::orWhere(string field, string eq, string val)
 	this->_prefix(field);
 	wg_where* where = new wg_where();
 	where->field = field;
+	where->eq = (eq == "" ? "=" : eq); // fallback for morons who pass empty equalizers
 	where->value = val;
 	where->pref = "OR ";
 	this->_wheres->push_back(where);
@@ -50,6 +52,7 @@ Queryable* Queryable::orWhere(string field, string val)
 	where->field = field;
 	where->value = val;
 	where->pref = "OR ";
+	where->eq = "=";
 	this->_wheres->push_back(where);
 	return this;
 }
@@ -59,6 +62,7 @@ Queryable* Queryable::andWhere(string field, string eq, string val)
 	this->_prefix(field);
 	wg_where* where = new wg_where();
 	where->field = field;
+	where->eq = (eq == "" ? "=" : eq); // fallback for morons who pass empty equalizers
 	where->value = val;
 	where->pref = "AND ";
 	this->_wheres->push_back(where);
@@ -72,6 +76,7 @@ Queryable* Queryable::andWhere(string field, string val)
 	where->field = field;
 	where->value = val;
 	where->pref = "AND ";
+	where->eq = "=";
 	this->_wheres->push_back(where);
 	return this;
 }
