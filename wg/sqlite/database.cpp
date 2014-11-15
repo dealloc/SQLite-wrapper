@@ -67,24 +67,29 @@ void Database::exec_query(SelectTransaction* transaction)
 
 void Database::exec_create(CreateTransaction* transaction)
 {
-	// sqlite3_update_hook(this->_db, Database::_update_hook, &transaction->getCallback()); // install update hook
 	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
+	{
 		WG_LOG(sqlite3_errmsg(this->_db));
+	}
+	else
+	{
+		(transaction->getCallback())(transaction->build());
+	}
 }
 
 void Database::exec_insert(InsertTransaction* transaction)
 {
-	// sqlite3_update_hook(this->_db, Database::_update_hook, &transaction->getCallback()); // install update hook
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &transaction->getCallback(), &this->_errors);
+	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
 
 void Database::exec_update(UpdateTransaction* transaction)
 {
-	sqlite3_update_hook(this->_db, Database::_update_hook, &transaction->getCallback()); // install update hook
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &transaction->getCallback(), &this->_errors);
+	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
@@ -198,29 +203,25 @@ void Database::_update_hook(void* callback, int type, char const * db, char cons
 {
 	switch (type)
 	{
-	case SQLITE_INSERT:
-	{
-		insert_callback* handler = (insert_callback*)callback;
-		(*handler)(static_cast<int>(rowid)); // avoid loss of data warning
-		break;
-	}
-	case SQLITE_DELETE:
-	{
-		create_callback* handler = (create_callback*)callback; // I know it doesn't make sense but I forgot the delete ^^'
-		(*handler)(string(db)); // avoid loss of data warning
-		break;
-	}
-	case SQLITE_UPDATE:
-	{
-		update_callback handler = *static_cast<update_callback*>(callback);
-		handler(static_cast<int>(rowid)); // avoid loss of data warning
-		break;
-	}
-	default:
-	{
-		create_callback* handler = (create_callback*)callback; // I know it doesn't make sense but I forgot the delete ^^'
-		(*handler)(string(db)); // avoid loss of data warning
-		break;
-	}
+		case SQLITE_INSERT:
+		{
+			InsertTransaction* transaction = static_cast<InsertTransaction*>(callback);
+			(transaction->getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
+			break;
+		}
+		case SQLITE_DELETE:
+		{
+			CreateTransaction* transaction = static_cast<CreateTransaction*>(callback); // I know it doesn't make sense but I forgot the delete ^^'
+			(transaction->getCallback())(string(db)); // avoid loss of data warning
+			break;
+		}
+		case SQLITE_UPDATE:
+		{
+			UpdateTransaction* transaction = static_cast<UpdateTransaction*>(callback);
+			(transaction->getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
+			break;
+		}
+		default:
+			break;
 	}
 }
