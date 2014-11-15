@@ -6,7 +6,6 @@ SelectTransaction::SelectTransaction()
 {
 	this->_selects = new vector<string>();
 	this->_tables = new vector<wg_table*>();
-	this->_wheres = new vector<wg_where*>();
 }
 
 
@@ -14,7 +13,6 @@ SelectTransaction::~SelectTransaction()
 {
 	delete this->_selects;
 	delete this->_tables;
-	delete this->_wheres;
 }
 
 SelectTransaction* SelectTransaction::from(string table)
@@ -40,66 +38,6 @@ SelectTransaction* SelectTransaction::select(string field)
 {
 	WG_SQLITE_PREFIX(field, this->_current);
 	this->_selects->push_back(field);
-	return this;
-}
-SelectTransaction* SelectTransaction::where(string field, string eq, string val)
-{
-	WG_SQLITE_PREFIX(field, this->_current);
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->eq = (eq == "" ? "=" : eq); // fallback for morons who pass empty equalizers
-	where->value = val;
-	this->_wheres->push_back(where);
-	return this;
-}
-SelectTransaction* SelectTransaction::where(string field, string val)
-{
-	WG_SQLITE_PREFIX(field, this->_current);
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->value = val;
-	this->_wheres->push_back(where);
-	return this;
-}
-
-SelectTransaction* SelectTransaction::orWhere(string field, string eq, string val)
-{
-	WG_SQLITE_PREFIX(field, this->_current);
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->value = val;
-	where->pref = "OR ";
-	this->_wheres->push_back(where);
-	return this;
-}
-SelectTransaction* SelectTransaction::orWhere(string field, string val)
-{
-	WG_SQLITE_PREFIX(field, this->_current);
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->value = val;
-	where->pref = "OR ";
-	this->_wheres->push_back(where);
-	return this;
-}
-SelectTransaction* SelectTransaction::andWhere(string field, string eq, string val)
-{
-	WG_SQLITE_PREFIX(field, this->_current);
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->value = val;
-	where->pref = "AND ";
-	this->_wheres->push_back(where);
-	return this;
-}
-SelectTransaction* SelectTransaction::andWhere(string field, string val)
-{
-	WG_SQLITE_PREFIX(field, this->_current);
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->value = val;
-	where->pref = "AND ";
-	this->_wheres->push_back(where);
 	return this;
 }
 
@@ -134,17 +72,7 @@ const string SelectTransaction::build()
 	return _sql.str();
 }
 
-bool SelectTransaction::hasCallback()
+inline void SelectTransaction::_prefix(string &field)
 {
-	return (this->_callback == WG_NULL);
-}
-
-void SelectTransaction::callback(select_callback handler)
-{
-	this->_callback = handler;
-}
-
-select_callback SelectTransaction::getCallback()
-{
-	return this->_callback;
+	WG_SQLITE_PREFIX(field, this->_current);
 }

@@ -49,18 +49,3 @@ const string InsertTransaction::build()
 	_sql << ");";
 	return _sql.str();
 }
-
-bool InsertTransaction::hasCallback()
-{
-	return (this->_callback == WG_NULL);
-}
-
-void InsertTransaction::callback(insert_callback handler)
-{
-	this->_callback = handler;
-}
-
-insert_callback InsertTransaction::getCallback()
-{
-	return this->_callback;
-}

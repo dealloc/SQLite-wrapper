@@ -7,6 +7,7 @@
 #include <functional>
 #include "../../wg_utils.h"
 #include "../structs.h"
+#include "../base/Callable.h"
 
 namespace wg
 {
@@ -18,13 +19,15 @@ namespace wg
 			WG_USE(vector);
 			WG_USE(stringstream);
 
+			using wg::sqlite::base::Callable;
+
 #ifdef WG_Cpp11
 			typedef std::function<void(int)> insert_callback;
 #else
 			typedef void(*insert_callback)(int);
 #endif
 
-			class InsertTransaction
+			class InsertTransaction : public Callable<insert_callback>
 			{
 			public:
 				InsertTransaction(const char* name);
@@ -33,11 +36,7 @@ namespace wg
 				InsertTransaction* insert(string field, string value);
 				InsertTransaction* insert(string field, int value);
 				const string build();
-				bool hasCallback();
-				void callback(insert_callback handler);
-				insert_callback getCallback();
 			private:
-				insert_callback _callback;
 				const string _name;
 				vector<wg_field*> *_fields = WG_NULL;
 			};

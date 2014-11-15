@@ -30,70 +30,6 @@ UpdateTransaction* UpdateTransaction::set(string name, string value)
 	return this;
 }
 
-UpdateTransaction* UpdateTransaction::where(string field, string eq, string val)
-{
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->eq = (eq == "" ? "=" : eq); // fallback for morons who pass empty equalizers
-	where->value = val;
-	this->_wheres->push_back(where);
-	return this;
-}
-
-UpdateTransaction* UpdateTransaction::where(string field, string val)
-{
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->eq = "="; // fallback for morons who pass empty equalizers
-	where->value = val;
-	this->_wheres->push_back(where);
-	return this;
-}
-
-UpdateTransaction* UpdateTransaction::orWhere(string field, string eq, string val)
-{
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->eq = (eq == "" ? "=" : eq); // fallback for morons who pass empty equalizers
-	where->value = val;
-	where->pref = "OR";
-	this->_wheres->push_back(where);
-	return this;
-}
-
-UpdateTransaction* UpdateTransaction::orWhere(string field, string val)
-{
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->value = val;
-	where->eq = "="; // fallback for morons who pass empty equalizers
-	where->pref = "OR";
-	this->_wheres->push_back(where);
-	return this;
-}
-
-UpdateTransaction* UpdateTransaction::andWhere(string field, string eq, string val)
-{
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->eq = (eq == "" ? "=" : eq); // fallback for morons who pass empty equalizers
-	where->value = val;
-	where->pref = "AND";
-	this->_wheres->push_back(where);
-	return this;
-}
-
-UpdateTransaction* UpdateTransaction::andWhere(string field, string val)
-{
-	wg_where* where = new wg_where();
-	where->field = field;
-	where->eq = "="; // fallback for morons who pass empty equalizers
-	where->value = val;
-	where->pref = "AND";
-	this->_wheres->push_back(where);
-	return this;
-}
-
 const string UpdateTransaction::build()
 {
 	stringstream _sql;
@@ -117,17 +53,7 @@ const string UpdateTransaction::build()
 	return _sql.str();
 }
 
-bool UpdateTransaction::hasCallback()
+inline void UpdateTransaction::_prefix(string &field)
 {
-	return (this->_callback == WG_NULL);
-}
-
-void UpdateTransaction::callback(update_callback handler)
-{
-	this->_callback = handler;
-}
-
-update_callback UpdateTransaction::getCallback()
-{
-	return this->_callback;
+	WG_SQLITE_PREFIX(field, this->_name);
 }

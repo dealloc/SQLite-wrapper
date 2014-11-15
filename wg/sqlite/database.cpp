@@ -195,7 +195,7 @@ UpdateTransaction* Database::update(string name, void(*callback)(UpdateTransacti
 int Database::_callback(void* resp, int rowc, char** fields, char** columns)
 {
 	select_callback &callback = (select_callback&)resp; // TODO: call callback
-	cout << "[SELECT] rowc: " << rowc << endl;
+	//cout << "[SELECT] rowc: " << rowc << endl;
 	return SQLITE_OK;
 }
 

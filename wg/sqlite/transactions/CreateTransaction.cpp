@@ -65,18 +65,3 @@ const string CreateTransaction::build()
 	_sql << ");";
 	return _sql.str();
 }
-
-bool CreateTransaction::hasCallback()
-{
-	return (this->_callback == WG_NULL);
-}
-
-void CreateTransaction::callback(std::function<void(string)> callback)
-{
-	this->_callback = callback;
-}
-
-std::function<void(string)> CreateTransaction::getCallback()
-{
-	return this->_callback;
-}
