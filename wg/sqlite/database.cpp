@@ -91,7 +91,10 @@ void Database::exec_update(UpdateTransaction* transaction)
 	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
 	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
+	{
+		WG_LOG(transaction->build().c_str());
 		WG_LOG(sqlite3_errmsg(this->_db));
+	}
 }
 
 SelectTransaction* Database::query()
