@@ -8,6 +8,7 @@
 #include "../../wg_utils.h"
 #include "../structs.h"
 #include "../base/Callable.h"
+#include "../base/Buildable.h"
 
 namespace wg
 {
@@ -20,6 +21,7 @@ namespace wg
 			WG_USE(stringstream);
 
 			using wg::sqlite::base::Callable;
+			using wg::sqlite::base::Buildable;
 
 #ifdef WG_Cpp11
 			typedef std::function<void(int)> insert_callback;
@@ -27,7 +29,7 @@ namespace wg
 			typedef void(*insert_callback)(int);
 #endif
 
-			class InsertTransaction : public Callable<insert_callback>
+			class InsertTransaction : public Callable<insert_callback>, public Buildable
 			{
 			public:
 				InsertTransaction(const char* name);

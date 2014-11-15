@@ -5,6 +5,7 @@
 #include "../structs.h"
 #include "../base/Queryable.h"
 #include "../base/Callable.h"
+#include "../base/Buildable.h"
 #include <string>
 #include <sstream>
 #include <vector>
@@ -22,6 +23,7 @@ namespace wg
 
 			using wg::sqlite::base::Queryable;
 			using wg::sqlite::base::Callable;
+			using wg::sqlite::base::Buildable;
 
 #ifdef WG_Cpp11
 			typedef std::function<void(void)> select_callback;
@@ -29,7 +31,7 @@ namespace wg
 			typedef void(*select_callback)(void);
 #endif
 
-			class SelectTransaction : public Queryable, public Callable<select_callback>
+			class SelectTransaction : public Queryable, public Callable<select_callback>, public Buildable
 			{
 			public:
 				SelectTransaction();

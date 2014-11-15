@@ -9,6 +9,7 @@
 #include "../structs.h"
 #include "../base/Queryable.h"
 #include "../base/Callable.h"
+#include "../base/Buildable.h"
 
 namespace wg
 {
@@ -22,6 +23,7 @@ namespace wg
 
 			using wg::sqlite::base::Queryable;
 			using wg::sqlite::base::Callable;
+			using wg::sqlite::base::Buildable;
 
 #ifdef WG_Cpp11
 			typedef std::function<void(int)> update_callback;
@@ -29,7 +31,7 @@ namespace wg
 			typedef void(*update_callback)(int);
 #endif
 
-			class UpdateTransaction : public Queryable, public Callable<update_callback>
+			class UpdateTransaction : public Queryable, public Callable<update_callback>, public Buildable
 			{
 			public:
 				UpdateTransaction(const char* name);
