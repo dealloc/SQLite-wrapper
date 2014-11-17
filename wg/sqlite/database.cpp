@@ -3,24 +3,28 @@ using namespace wg::sqlite;
 
 Database::Database(const char* name)
 {
-	if (sqlite3_open(name, &this->_db) != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
-		throw OpenException(sqlite3_errmsg(this->_db));
-	this->_selects = new vector<SelectTransaction*>();
-	this->_creates = new vector<CreateTransaction*>();
-	this->_inserts = new vector<InsertTransaction*>();
-	this->_updates = new vector<UpdateTransaction*>();
-	this->_deletes = new vector<DeleteTransaction*>();
+	int status = sqlite3_open(name, &this->_db);
+	if (status != SQLITE_OK)
+		throw OpenException(sqlite3_errstr(status));
+	this->initialize();
 }
 
 Database::Database(const string name)
 {
-	if (sqlite3_open(name.c_str(), &this->_db) != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
-		throw OpenException(sqlite3_errmsg(this->_db));
+	int status = sqlite3_open(name.c_str(), &this->_db);
+	if (status != SQLITE_OK)
+		throw OpenException(sqlite3_errstr(status));
+	this->initialize();
+}
+
+void Database::initialize()
+{
 	this->_selects = new vector<SelectTransaction*>();
 	this->_creates = new vector<CreateTransaction*>();
 	this->_inserts = new vector<InsertTransaction*>();
 	this->_updates = new vector<UpdateTransaction*>();
 	this->_deletes = new vector<DeleteTransaction*>();
+	sqlite3_update_hook(this->_db, Database::_update_hook, WG_NULL); // install update hook
 }
 
 Database::~Database()
@@ -57,14 +61,14 @@ void Database::execute(const string sql, wg_raw_callback handler)
 {
 	int status = sqlite3_exec(this->_db, sql.c_str(), handler, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		WG_LOG(sqlite3_errmsg(this->_db));
+		throw QueryException(sqlite3_errstr(status));
 }
 
 void Database::execute(const string sql, wg_raw_callback handler, void* obj)
 {
 	int status = sqlite3_exec(this->_db, sql.c_str(), handler, obj, &this->_errors);
 	if (status != SQLITE_OK)
-		WG_LOG(sqlite3_errmsg(this->_db));
+		throw QueryException(sqlite3_errstr(status));
 }
 
 
@@ -73,47 +77,37 @@ void Database::exec_query(SelectTransaction* transaction)
     select_callback callback = SelectTransaction::getCallback(); // GCC -fpermissive forbids getting address of temporary variable
     int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &callback, &this->_errors);
 	if (status != SQLITE_OK)
-		WG_LOG(sqlite3_errmsg(this->_db));
+		throw QueryException(sqlite3_errstr(status));
 }
 
 void Database::exec_create(CreateTransaction* transaction)
 {
 	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-	{
-		WG_LOG(sqlite3_errmsg(this->_db));
-	}
+		throw QueryException(sqlite3_errstr(status));
 	else
-	{
-		(CreateTransaction::getCallback())(transaction->build());
-	}
+		(CreateTransaction::getCallback())(transaction->which()); // call callback with the name of the created table
 }
 
 void Database::exec_insert(InsertTransaction* transaction)
 {
-	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
 	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		WG_LOG(sqlite3_errmsg(this->_db));
+		throw QueryException(sqlite3_errstr(status));
 }
 
 void Database::exec_update(UpdateTransaction* transaction)
 {
-	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
 	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-	{
-		WG_LOG(transaction->build().c_str());
-		WG_LOG(sqlite3_errmsg(this->_db));
-	}
+		throw QueryException(sqlite3_errstr(status));
 }
 
 void Database::exec_delete(DeleteTransaction* transaction)
 {
-	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
 	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		WG_LOG(sqlite3_errmsg(this->_db));
+		throw QueryException(sqlite3_errstr(status));
 }
 
 SelectTransaction* Database::query()
@@ -153,7 +147,7 @@ DeleteTransaction* Database::remove(string name)
 
 #ifdef WG_Cpp11
 
-SelectTransaction* Database::query(function<void(SelectTransaction*)> callback)
+SelectTransaction* Database::query(std::function<void(SelectTransaction*)> callback)
 {
 	SelectTransaction* transaction = new SelectTransaction();
 	this->_selects->push_back(transaction);
@@ -161,7 +155,7 @@ SelectTransaction* Database::query(function<void(SelectTransaction*)> callback)
 	return transaction;
 }
 
-CreateTransaction* Database::create(string name, function<void(CreateTransaction*)> callback)
+CreateTransaction* Database::create(string name, std::function<void(CreateTransaction*)> callback)
 {
 	CreateTransaction* transaction = new CreateTransaction(name);
 	this->_creates->push_back(transaction);
@@ -169,7 +163,7 @@ CreateTransaction* Database::create(string name, function<void(CreateTransaction
 	return transaction;
 }
 
-InsertTransaction* Database::insert(string name, function<void(InsertTransaction*)> callback)
+InsertTransaction* Database::insert(string name, std::function<void(InsertTransaction*)> callback)
 {
 	InsertTransaction* transaction = new InsertTransaction(name);
 	this->_inserts->push_back(transaction);
@@ -177,7 +171,7 @@ InsertTransaction* Database::insert(string name, function<void(InsertTransaction
 	return transaction;
 }
 
-UpdateTransaction* Database::update(string name, function<void(UpdateTransaction*)> callback)
+UpdateTransaction* Database::update(string name, std::function<void(UpdateTransaction*)> callback)
 {
 	UpdateTransaction* transaction = new UpdateTransaction(name);
 	this->_updates->push_back(transaction);
@@ -186,7 +180,7 @@ UpdateTransaction* Database::update(string name, function<void(UpdateTransaction
 }
 
 
-DeleteTransaction* Database::remove(string name, function<void(DeleteTransaction*)> callback)
+DeleteTransaction* Database::remove(string name, std::function<void(DeleteTransaction*)> callback)
 {
 	DeleteTransaction* transaction = new DeleteTransaction(name);
 	this->_deletes->push_back(transaction);

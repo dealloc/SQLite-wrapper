@@ -3,7 +3,6 @@
 
 #include <string>
 #include <functional>
-#include <vector>
 #include <stack>
 #include <sqlite3.h>
 #include <iostream>
@@ -16,6 +15,7 @@
 #include "exceptions/OpenException.h"
 #include "exceptions/CloseException.h"
 #include "exceptions/UnknownOperationException.h"
+#include "exceptions/QueryException.h"
 
 // when using this as a database name, everything is stored in memory
 #define WG_SQLITE_VOLATILE_DB ":memory:"
@@ -26,10 +26,6 @@ namespace wg
 	{
 		WG_USE_STRING; // include std::string
 		WG_USE(vector);
-		WG_USE(stack);
-#ifdef WG_Cpp11
-        WG_USE(function);
-#endif
 		
 		typedef int(wg_raw_callback)(void*, int, char**, char**);
 
@@ -51,6 +47,7 @@ namespace wg
 		using wg::sqlite::exceptions::OpenException;
 		using wg::sqlite::exceptions::CloseException;
 		using wg::sqlite::exceptions::UnknownOperationException;
+		using wg::sqlite::exceptions::QueryException;
 
         class Database
         {
@@ -68,11 +65,11 @@ namespace wg
 			DeleteTransaction* remove(string name); // push a delete query onto the queque
 			const sqlite3* raw() const;
 #ifdef WG_Cpp11
-			SelectTransaction* query(function<void(SelectTransaction*)> callback); // allows for building select queries using lambda callbacks (C++0x or later)
-			CreateTransaction* create(string name, function<void(CreateTransaction*)> callback); // allows for building create queries using lambda callbacks (C++0x or later)
-			InsertTransaction* insert(string name, function<void(InsertTransaction*)> callback); // allows for building insert queries using lambda callbacks (C++0x or later)
-			UpdateTransaction* update(string name, function<void(UpdateTransaction*)> callback); // allows for building update queries using lambda callbacks (C++0x or later)
-			DeleteTransaction* remove(string name, function<void(DeleteTransaction*)> callback); // allows for building delete queries using lambda callbacks (C++0x or later)
+			SelectTransaction* query(std::function<void(SelectTransaction*)> callback); // allows for building select queries using lambda callbacks (C++0x or later)
+			CreateTransaction* create(string name, std::function<void(CreateTransaction*)> callback); // allows for building create queries using lambda callbacks (C++0x or later)
+			InsertTransaction* insert(string name, std::function<void(InsertTransaction*)> callback); // allows for building insert queries using lambda callbacks (C++0x or later)
+			UpdateTransaction* update(string name, std::function<void(UpdateTransaction*)> callback); // allows for building update queries using lambda callbacks (C++0x or later)
+			DeleteTransaction* remove(string name, std::function<void(DeleteTransaction*)> callback); // allows for building delete queries using lambda callbacks (C++0x or later)
 #else
 			SelectTransaction* query(void (*callback)(SelectTransaction*)); // allows for building select queries using function pointer callbacks
 			CreateTransaction* create(string name, void(*callback)(CreateTransaction*)); // allows for building create queries using function pointer callbacks
@@ -86,13 +83,13 @@ namespace wg
 			void exec_insert(InsertTransaction* transaction);
 			void exec_update(UpdateTransaction* transaction);
 			void exec_delete(DeleteTransaction* transaction);
+			void initialize(); // setup all internal vectors & stuff
 			// store transactions
 			vector<SelectTransaction*> *_selects = WG_NULL;
 			vector<CreateTransaction*> *_creates = WG_NULL;
 			vector<InsertTransaction*> *_inserts = WG_NULL;
 			vector<UpdateTransaction*> *_updates = WG_NULL;
 			vector<DeleteTransaction*> *_deletes = WG_NULL;
-			// store queque callbacks
 			sqlite3* _db = WG_NULL;
 			char* _errors = WG_NULL;
 			static int _callback(void* resp, int rowc, char** fields, char** columns); // internal hook for SELECT callbacks
