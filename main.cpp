@@ -69,7 +69,7 @@ int main()
 	}
 	catch (std::bad_function_call &ex) // current callback model isn't perfect, but neither are you.
 	{
-		cout << "exception: " << ex.what() << endl;
+		cout << "bad_function_call exception: " << ex.what() << endl;
 	}
 
 	delete db; // call destructor

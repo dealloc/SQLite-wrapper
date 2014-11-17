@@ -39,6 +39,7 @@ namespace wg
 				CreateTransaction(const char* table);
 				CreateTransaction(string table);
 				~CreateTransaction();
+				const string which();
 				CreateTransaction* gaurd();
 				Column* varchar(string field);
 				Column* integer(string field);
