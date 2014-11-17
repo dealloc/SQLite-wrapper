@@ -8,6 +8,7 @@ Database::Database(const char* name)
 	this->_creates = new vector<CreateTransaction*>();
 	this->_inserts = new vector<InsertTransaction*>();
 	this->_updates = new vector<UpdateTransaction*>();
+	this->_deletes = new vector<DeleteTransaction*>();
 }
 
 Database::Database(const string name)
@@ -17,6 +18,7 @@ Database::Database(const string name)
 	this->_creates = new vector<CreateTransaction*>();
 	this->_inserts = new vector<InsertTransaction*>();
 	this->_updates = new vector<UpdateTransaction*>();
+	this->_deletes = new vector<DeleteTransaction*>();
 }
 
 Database::~Database()
@@ -25,6 +27,8 @@ Database::~Database()
 	delete this->_selects;
 	delete this->_creates;
 	delete this->_inserts;
+	delete this->_updates;
+	delete this->_deletes;
 }
 
 void Database::commit()
@@ -32,6 +36,9 @@ void Database::commit()
 
 	WG_ITERATE_PTR(it, vector<CreateTransaction*>, this->_creates)
 		exec_create(*it);
+
+	WG_ITERATE_PTR(it, vector<DeleteTransaction*>, this->_deletes)
+		exec_delete(*it);
 
 	WG_ITERATE_PTR(it, vector<InsertTransaction*>, this->_inserts)
 		exec_insert(*it);
@@ -60,7 +67,8 @@ void Database::execute(const string sql, wg_raw_callback handler, void* obj)
 
 void Database::exec_query(SelectTransaction* transaction)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &transaction->getCallback(), &this->_errors);
+    select_callback callback = transaction->getCallback(); // GCC -fpermissive forbids getting address of temporary variable
+    int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &callback, &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
 }
@@ -97,6 +105,14 @@ void Database::exec_update(UpdateTransaction* transaction)
 	}
 }
 
+void Database::exec_delete(DeleteTransaction* transaction)
+{
+	sqlite3_update_hook(this->_db, Database::_update_hook, transaction); // install update hook
+	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
+	if (status != SQLITE_OK)
+		WG_LOG(sqlite3_errmsg(this->_db));
+}
+
 SelectTransaction* Database::query()
 {
 	SelectTransaction* transaction = new SelectTransaction();
@@ -122,6 +138,13 @@ UpdateTransaction* Database::update(string name)
 {
 	UpdateTransaction* transaction = new UpdateTransaction(name);
 	this->_updates->push_back(transaction);
+	return transaction;
+}
+
+DeleteTransaction* Database::remove(string name)
+{
+	DeleteTransaction* transaction = new DeleteTransaction(name);
+	this->_deletes->push_back(transaction);
 	return transaction;
 }
 
@@ -155,6 +178,15 @@ UpdateTransaction* Database::update(string name, function<void(UpdateTransaction
 {
 	UpdateTransaction* transaction = new UpdateTransaction(name);
 	this->_updates->push_back(transaction);
+	callback(transaction);
+	return transaction;
+}
+
+
+DeleteTransaction* Database::remove(string name, function<void(DeleteTransaction*)> callback)
+{
+	DeleteTransaction* transaction = new DeleteTransaction(name);
+	this->_deletes->push_back(transaction);
 	callback(transaction);
 	return transaction;
 }
@@ -193,6 +225,14 @@ UpdateTransaction* Database::update(string name, void(*callback)(UpdateTransacti
 	return transaction;
 }
 
+DeleteTransaction* Database::removes(string name, void(*callback)(DeleteTransaction*))
+{
+	DeleteTransaction* transaction = new DeleteTransaction(name);
+	this->_deletes->push_back(transaction);
+	callback(transaction);
+	return transaction;
+}
+
 #endif
 
 int Database::_callback(void* resp, int rowc, char** fields, char** columns)
@@ -214,8 +254,8 @@ void Database::_update_hook(void* callback, int type, char const * db, char cons
 		}
 		case SQLITE_DELETE:
 		{
-			CreateTransaction* transaction = static_cast<CreateTransaction*>(callback); // I know it doesn't make sense but I forgot the delete ^^'
-			(transaction->getCallback())(string(db)); // avoid loss of data warning
+			DeleteTransaction* transaction = static_cast<DeleteTransaction*>(callback); // I know it doesn't make sense but I forgot the delete ^^'
+			(transaction->getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
 		}
 		case SQLITE_UPDATE:

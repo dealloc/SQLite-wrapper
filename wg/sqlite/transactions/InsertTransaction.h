@@ -37,7 +37,7 @@ namespace wg
 				~InsertTransaction();
 				InsertTransaction* insert(string field, string value);
 				InsertTransaction* insert(string field, int value);
-				const string build();
+				virtual const string build();
 			private:
 				const string _name;
 				vector<wg_field*> *_fields = WG_NULL;

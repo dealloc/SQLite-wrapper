@@ -38,9 +38,9 @@ namespace wg
 				UpdateTransaction(const string name);
 				~UpdateTransaction();
 				UpdateTransaction* set(string name, string value);
-				const string build();
+				virtual const string build();
 			private:
-				inline void _prefix(string &field);
+				virtual inline void _prefix(string &field);
 				const string _name;
 				vector<wg_field*> *_fields = WG_NULL;
 			};

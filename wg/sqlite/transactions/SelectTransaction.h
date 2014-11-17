@@ -39,9 +39,9 @@ namespace wg
 				SelectTransaction* from(string table); // define from which table we query
 				SelectTransaction* from(string table, string alias); // defines from which table we query (allows alias)
 				SelectTransaction* select(string field); // select which fields we take
-				const string build();
+				virtual const string build();
 			private:
-				inline void _prefix(string &field);
+				virtual inline void _prefix(string &field);
                 string _current;
 				vector<wg_table*> *_tables = WG_NULL;
 				vector<string> *_selects = WG_NULL;

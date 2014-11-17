@@ -73,4 +73,6 @@
 #define WG_ISTR( x ) dynamic_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
+#define WG_THROW(exception, msg) throw exception(msg, __FILE__, __LINE__)
+
 #endif

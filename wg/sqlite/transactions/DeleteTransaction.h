@@ -2,6 +2,8 @@
 #define WG_DELETETRANSACTION_H
 
 #include <string>
+#include <sstream>
+#include <vector>
 #include "../../wg_utils.h"
 #include "../structs.h"
 #include "../base/Callable.h"
@@ -14,7 +16,9 @@ namespace wg
 	{
 		namespace transactions
 		{
-			WG_USE(string);
+			WG_USE_STRING;
+			WG_USE(stringstream);
+			WG_USE(vector);
 
 #ifdef WG_Cpp11
 			typedef std::function<void(int)> delete_callback;
@@ -32,6 +36,10 @@ namespace wg
 				DeleteTransaction(const char* table);
 				DeleteTransaction(const string table);
 				~DeleteTransaction();
+				virtual const string build();
+			private:
+				const string _name;
+				virtual inline void _prefix(string &field);
 			};
 		}
 	}

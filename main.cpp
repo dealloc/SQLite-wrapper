@@ -5,7 +5,7 @@ using namespace wg::sqlite;
 
 int main()
 {
-    Database *db = new Database();
+    Database *db = new Database("database.db");
     db->create("users", [](CreateTransaction* schema)
     {
         schema->integer("id")->increments()->primary();
@@ -41,13 +41,18 @@ int main()
 	{
 		table->set("username", "username_1");
 		table->set("password", "password_1");
-		table->where("id", "1");
-		table->andWhere("username", "user1");
+		table->where("id", "2");
+		table->andWhere("username", "5");
 
 		table->callback([](int arg)
 		{
 			cout << "completed update (arg: " << arg << ")" << endl;
 		});
+	});
+
+	db->remove("users", [](DeleteTransaction* table)
+	{
+		table->where("id", "1");
 	});
 
 	db->query([](SelectTransaction* table)

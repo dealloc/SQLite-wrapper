@@ -43,7 +43,7 @@ namespace wg
 				Column* varchar(string field);
 				Column* integer(string field);
 				Column* boolean(string field);
-				const string build();
+				virtual const string build();
 			private:
 				vector<Column*> *_columns = WG_NULL;
 				string _name;
