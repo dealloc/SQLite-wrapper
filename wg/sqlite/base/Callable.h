@@ -13,12 +13,13 @@ namespace wg
 			template<typename T> class Callable
 			{
 			public:
-				bool hasCallback() { return this->_callback == WG_NULL; }
-				void callback(T handler) { this->_callback = handler; }
-				T getCallback() { return this->_callback; }
+				static bool hasCallback() { return Callable<T>::_callback == WG_NULL; }
+				static void callback(T handler) { Callable<T>::_callback = handler; }
+				static T getCallback() { return Callable<T>::_callback; }
 			protected:
-				T _callback;
+				static T _callback;
 			};
+			template<typename T> T Callable<T>::_callback;
 		}
 	}
 }

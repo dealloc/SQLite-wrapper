@@ -3,7 +3,8 @@ using namespace wg::sqlite;
 
 Database::Database(const char* name)
 {
-	sqlite3_open(name, &this->_db); // TODO: check return for SQLITE_OK
+	if (sqlite3_open(name, &this->_db) != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
+		throw OpenException(sqlite3_errmsg(this->_db));
 	this->_selects = new vector<SelectTransaction*>();
 	this->_creates = new vector<CreateTransaction*>();
 	this->_inserts = new vector<InsertTransaction*>();
@@ -13,7 +14,8 @@ Database::Database(const char* name)
 
 Database::Database(const string name)
 {
-	sqlite3_open(name.c_str(), &this->_db); // TODO: check return for SQLITE_OK
+	if (sqlite3_open(name.c_str(), &this->_db) != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
+		throw OpenException(sqlite3_errmsg(this->_db));
 	this->_selects = new vector<SelectTransaction*>();
 	this->_creates = new vector<CreateTransaction*>();
 	this->_inserts = new vector<InsertTransaction*>();
@@ -23,7 +25,8 @@ Database::Database(const string name)
 
 Database::~Database()
 {
-	sqlite3_close(this->_db); // TODO check for SQLITE_OK
+	if (sqlite3_close(this->_db) != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
+		throw CloseException(sqlite3_errmsg(this->_db));
 	delete this->_selects;
 	delete this->_creates;
 	delete this->_inserts;
@@ -67,7 +70,7 @@ void Database::execute(const string sql, wg_raw_callback handler, void* obj)
 
 void Database::exec_query(SelectTransaction* transaction)
 {
-    select_callback callback = transaction->getCallback(); // GCC -fpermissive forbids getting address of temporary variable
+    select_callback callback = SelectTransaction::getCallback(); // GCC -fpermissive forbids getting address of temporary variable
     int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &callback, &this->_errors);
 	if (status != SQLITE_OK)
 		WG_LOG(sqlite3_errmsg(this->_db));
@@ -82,7 +85,7 @@ void Database::exec_create(CreateTransaction* transaction)
 	}
 	else
 	{
-		(transaction->getCallback())(transaction->build());
+		(CreateTransaction::getCallback())(transaction->build());
 	}
 }
 
@@ -248,23 +251,20 @@ void Database::_update_hook(void* callback, int type, char const * db, char cons
 	{
 		case SQLITE_INSERT:
 		{
-			InsertTransaction* transaction = static_cast<InsertTransaction*>(callback);
-			(transaction->getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
+			(InsertTransaction::getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
 		}
 		case SQLITE_DELETE:
 		{
-			DeleteTransaction* transaction = static_cast<DeleteTransaction*>(callback); // I know it doesn't make sense but I forgot the delete ^^'
-			(transaction->getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
+			(DeleteTransaction::getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
 		}
 		case SQLITE_UPDATE:
 		{
-			UpdateTransaction* transaction = static_cast<UpdateTransaction*>(callback);
-			(transaction->getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
+			(UpdateTransaction::getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
 		}
 		default:
-			break;
+			throw UnknownOperationException("unknown operation"); // todo: add type to exception message
 	}
 }

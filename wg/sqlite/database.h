@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include <vector>
-#include <map>
+#include <stack>
 #include <sqlite3.h>
 #include <iostream>
 #include "transactions/SelectTransaction.h"
@@ -13,6 +13,9 @@
 #include "transactions/UpdateTransaction.h"
 #include "transactions/DeleteTransaction.h"
 #include "../wg_utils.h"
+#include "exceptions/OpenException.h"
+#include "exceptions/CloseException.h"
+#include "exceptions/UnknownOperationException.h"
 
 // when using this as a database name, everything is stored in memory
 #define WG_SQLITE_VOLATILE_DB ":memory:"
@@ -23,7 +26,7 @@ namespace wg
 	{
 		WG_USE_STRING; // include std::string
 		WG_USE(vector);
-		WG_USE(map);
+		WG_USE(stack);
 #ifdef WG_Cpp11
         WG_USE(function);
 #endif
@@ -44,6 +47,10 @@ namespace wg
 
 		using wg::sqlite::transactions::DeleteTransaction;
 		using wg::sqlite::transactions::delete_callback;
+
+		using wg::sqlite::exceptions::OpenException;
+		using wg::sqlite::exceptions::CloseException;
+		using wg::sqlite::exceptions::UnknownOperationException;
 
         class Database
         {
@@ -79,11 +86,13 @@ namespace wg
 			void exec_insert(InsertTransaction* transaction);
 			void exec_update(UpdateTransaction* transaction);
 			void exec_delete(DeleteTransaction* transaction);
+			// store transactions
 			vector<SelectTransaction*> *_selects = WG_NULL;
 			vector<CreateTransaction*> *_creates = WG_NULL;
 			vector<InsertTransaction*> *_inserts = WG_NULL;
 			vector<UpdateTransaction*> *_updates = WG_NULL;
 			vector<DeleteTransaction*> *_deletes = WG_NULL;
+			// store queque callbacks
 			sqlite3* _db = WG_NULL;
 			char* _errors = WG_NULL;
 			static int _callback(void* resp, int rowc, char** fields, char** columns); // internal hook for SELECT callbacks

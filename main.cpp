@@ -5,7 +5,8 @@ using namespace wg::sqlite;
 
 int main()
 {
-    Database *db = new Database("database.db");
+	Database *db = new Database();
+
     db->create("users", [](CreateTransaction* schema)
     {
         schema->integer("id")->increments()->primary();
@@ -31,10 +32,7 @@ int main()
 	{
 		table->insert("username", 5);
 		table->insert("password", "password2");
-		table->callback([](int arg)
-		{
-			cout << "completed insertion (arg: " << arg << ")" << endl;
-		});
+		// no callback because insert already has a callback defined (it's not needed)
 	});
 
 	db->update("users", [](UpdateTransaction* table)
@@ -65,6 +63,15 @@ int main()
 		});
 	});
 	
-	db->commit();
+	try
+	{
+		db->commit();
+	}
+	catch (std::bad_function_call &ex) // current callback model isn't perfect, but neither are you.
+	{
+		cout << "exception: " << ex.what() << endl;
+	}
+
+	delete db; // call destructor
 	return 0;
 }
