@@ -29,7 +29,8 @@ void Database::initialize()
 
 Database::~Database()
 {
-	if (sqlite3_close(this->_db) != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
+	int status = sqlite3_close(this->_db);
+	if (status != SQLITE_OK) // TODO: store status int and if not SQLITE_OK request sqlite3_errstr message
 		throw CloseException(sqlite3_errmsg(this->_db));
 	delete this->_selects;
 	delete this->_creates;
@@ -42,72 +43,63 @@ void Database::commit()
 {
 
 	WG_ITERATE_PTR(it, vector<CreateTransaction*>, this->_creates)
-		exec_create(*it);
+		this->_exec(*it);
 
 	WG_ITERATE_PTR(it, vector<DeleteTransaction*>, this->_deletes)
-		exec_delete(*it);
+		this->_exec(*it);
 
 	WG_ITERATE_PTR(it, vector<InsertTransaction*>, this->_inserts)
-		exec_insert(*it);
+		this->_exec(*it);
 
 	WG_ITERATE_PTR(it, vector<UpdateTransaction*>, this->_updates)
-		exec_update(*it);
+		this->_exec(*it);
 
 	WG_ITERATE_PTR(it, vector<SelectTransaction*>, this->_selects)
-		exec_query(*it);
-}
-
-void Database::execute(const string sql, wg_raw_callback handler)
-{
-	int status = sqlite3_exec(this->_db, sql.c_str(), handler, WG_NULL, &this->_errors);
-	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
+		this->_exec(*it);
 }
 
 void Database::execute(const string sql, wg_raw_callback handler, void* obj)
 {
 	int status = sqlite3_exec(this->_db, sql.c_str(), handler, obj, &this->_errors);
 	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
+		throw QueryException(sqlite3_errmsg(this->_db));
 }
 
-
-void Database::exec_query(SelectTransaction* transaction)
+void Database::_exec(SelectTransaction* trans)
 {
-    select_callback callback = SelectTransaction::getCallback(); // GCC -fpermissive forbids getting address of temporary variable
-    int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, &callback, &this->_errors);
+	select_callback callback = trans->getCallback(); // GCC -fpermissive forbids getting address of temporary variable
+	int status = sqlite3_exec(this->_db, trans->build().c_str(), &Database::_callback, &callback, &this->_errors);
 	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
+		//cout << "invalid SQL: " << trans->build() << endl;
+		throw QueryException(sqlite3_errmsg(this->_db));
 }
 
-void Database::exec_create(CreateTransaction* transaction)
+void Database::_exec(CreateTransaction* trans)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
+	int status = sqlite3_exec(this->_db, trans->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
-	else
-		(CreateTransaction::getCallback())(transaction->which()); // call callback with the name of the created table
+		throw QueryException(sqlite3_errmsg(this->_db));
 }
 
-void Database::exec_insert(InsertTransaction* transaction)
+void Database::_exec(InsertTransaction* trans)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
+	int status = sqlite3_exec(this->_db, trans->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
+		throw QueryException(sqlite3_errmsg(this->_db));
 }
 
-void Database::exec_update(UpdateTransaction* transaction)
+void Database::_exec(UpdateTransaction* trans)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
+	int status = sqlite3_exec(this->_db, trans->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
+		throw QueryException(sqlite3_errmsg(this->_db));
 }
 
-void Database::exec_delete(DeleteTransaction* transaction)
+void Database::_exec(DeleteTransaction* trans)
 {
-	int status = sqlite3_exec(this->_db, transaction->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
+	int status = sqlite3_exec(this->_db, trans->build().c_str(), &Database::_callback, WG_NULL, &this->_errors);
 	if (status != SQLITE_OK)
-		throw QueryException(sqlite3_errstr(status));
+		throw QueryException(sqlite3_errmsg(this->_db));
 }
 
 SelectTransaction* Database::query()
@@ -244,20 +236,14 @@ void Database::_update_hook(void* callback, int type, char const * db, char cons
 	switch (type)
 	{
 		case SQLITE_INSERT:
-		{
 			(InsertTransaction::getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
-		}
 		case SQLITE_DELETE:
-		{
 			(DeleteTransaction::getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
-		}
 		case SQLITE_UPDATE:
-		{
 			(UpdateTransaction::getCallback())(static_cast<int>(rowid)); // avoid loss of data warning
 			break;
-		}
 		default:
 			throw UnknownOperationException("unknown operation"); // todo: add type to exception message
 	}

@@ -20,58 +20,39 @@ int main()
 
 	db->insert("users", [](InsertTransaction* table)
 	{
-		table->insert("username", "user1");
-		table->insert("password", "password1");
-		table->callback([](int arg)
+		table->insert("username", "user_1");
+		table->insert("password", "pwd_1");
+		table->callback([](int)
 		{
-			cout << "completed insertion (arg: " << arg << ")" << endl;
+			cout << "insert is called" << endl;
 		});
-	});
-
-	db->insert("users", [](InsertTransaction* table)
-	{
-		table->insert("username", 5);
-		table->insert("password", "password2");
-		// no callback because insert already has a callback defined (it's not needed)
 	});
 
 	db->update("users", [](UpdateTransaction* table)
 	{
-		table->set("username", "username_1");
-		table->set("password", "password_1");
-		table->where("id", "2");
-		table->andWhere("username", "5");
-
-		table->callback([](int arg)
+		table->set("username", "__user1__");
+		table->where("username", "user_1");
+		table->callback([](int)
 		{
-			cout << "completed update (arg: " << arg << ")" << endl;
+			cout << "update is called" << endl;
 		});
-	});
-
-	db->remove("users", [](DeleteTransaction* table)
-	{
-		table->where("id", "1");
 	});
 
 	db->query([](SelectTransaction* table)
 	{
-		table->from("users");
 		table->select("username");
+		table->from("users");
+		table->where("id", "1");
 		table->callback([]()
 		{
-			cout << "completed selection transaction!" << endl;
+			cout << "select is called!" << endl;
 		});
 	});
 	
-	try
-	{
-		db->commit();
-	}
-	catch (std::bad_function_call &ex) // current callback model isn't perfect, but neither are you.
-	{
-		cout << "bad_function_call exception: " << ex.what() << endl;
-	}
+	//db->commit();
+	try { db->commit(); }
+	catch (QueryException &ex) { cout << "exception thrown: " << ex.what() << endl; }
 
-	delete db; // call destructor
+	cin.get();
 	return 0;
 }

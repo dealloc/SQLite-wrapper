@@ -16,6 +16,8 @@
 #include "exceptions/CloseException.h"
 #include "exceptions/UnknownOperationException.h"
 #include "exceptions/QueryException.h"
+#include "base/Callable.h"
+#include "base/Buildable.h"
 
 // when using this as a database name, everything is stored in memory
 #define WG_SQLITE_VOLATILE_DB ":memory:"
@@ -49,6 +51,9 @@ namespace wg
 		using wg::sqlite::exceptions::UnknownOperationException;
 		using wg::sqlite::exceptions::QueryException;
 
+		using wg::sqlite::base::Callable;
+		using wg::sqlite::base::Buildable;
+
         class Database
         {
         public:
@@ -56,8 +61,7 @@ namespace wg
 			Database(const string name); // create a new database with given name (empty for in-memory database)
 			~Database(); // destructor; clean up all used resources
 			void commit(); // execute all pending transactions
-			void execute(const string sql, wg_raw_callback handler); // execute raw SQL queries
-			void execute(const string sql, wg_raw_callback handler, void* obj); // execute raw SQL queries and pass object to callback
+			void execute(const string sql, wg_raw_callback handler, void* obj = WG_NULL); // execute raw SQL queries and pass object to callback
 			SelectTransaction* query(); // push a select query onto the queque
 			CreateTransaction* create(string name); // push a create query onto the queque
 			InsertTransaction* insert(string name); // push an insert query onto the queque
@@ -78,11 +82,11 @@ namespace wg
 			DeleteTransaction* removes(string name, void(*callback)(DeleteTransaction*)); // allows for building delete queries using function pointer callbacks
 #endif
 		private:
-			void exec_query(SelectTransaction* transaction);
-			void exec_create(CreateTransaction* transaction);
-			void exec_insert(InsertTransaction* transaction);
-			void exec_update(UpdateTransaction* transaction);
-			void exec_delete(DeleteTransaction* transaction);
+			void _exec(SelectTransaction* trans);
+			void _exec(CreateTransaction* trans);
+			void _exec(InsertTransaction* trans);
+			void _exec(UpdateTransaction* trans);
+			void _exec(DeleteTransaction* trans);
 			void initialize(); // setup all internal vectors & stuff
 			// store transactions
 			vector<SelectTransaction*> *_selects = WG_NULL;

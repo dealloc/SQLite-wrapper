@@ -14,6 +14,7 @@ namespace wg
 
 			class Buildable
 			{
+			public:
 				virtual const string build() = 0;
 			};
 		}

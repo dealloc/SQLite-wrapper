@@ -10,6 +10,12 @@ namespace wg
 	{
 		namespace base
 		{
+			/*
+			* SOLUTION TO THE RECURRING VARIABLE PROBLEM:
+			* both update and insert have the same typedef callback (just with a different name)
+			* thus internally they use the same class and as such they use the same variable
+			* SOLUTION: change the function prototype of either one so signatures no longer match
+			*/
 			template<typename T> class Callable
 			{
 			public:
@@ -19,7 +25,7 @@ namespace wg
 			protected:
 				static T _callback;
 			};
-			template<typename T> T Callable<T>::_callback;
+			template<typename T> T Callable<T>::_callback; // force allocation of space for static
 		}
 	}
 }
