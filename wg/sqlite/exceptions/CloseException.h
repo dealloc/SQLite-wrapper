@@ -1,7 +1,7 @@
 #ifndef WG_CLOSEEXCEPTION_H
 #define WG_CLOSEEXCEPTION_H
 
-#include <exception>
+#include <stdexcept>
 
 namespace wg
 {
@@ -9,9 +9,9 @@ namespace wg
 	{
 		namespace exceptions
 		{
-			class CloseException : public std::exception
+			class CloseException : public std::runtime_error
 			{
-			public: CloseException(const char* msg) : std::exception(msg) {};
+			public: CloseException(const char* msg) : std::runtime_error(msg) {};
 			};
 		}
 	}

@@ -1,7 +1,7 @@
 #ifndef WG_OPENEXCEPTION_H
 #define WG_OPENEXCEPTION_H
 
-#include <exception>
+#include <stdexcept>
 
 namespace wg
 {
@@ -9,9 +9,9 @@ namespace wg
 	{
 		namespace exceptions
 		{
-			class OpenException : public std::exception
+			class OpenException : public std::runtime_error
 			{
-			public: OpenException(const char* msg) : std::exception(msg){};
+			public: OpenException(const char* msg) : std::runtime_error(msg){};
 			};
 		}
 	}

@@ -1,7 +1,7 @@
 #ifndef WG_UNKNOWNOPERATIONEXCEPTION_H
 #define WG_UNKNOWNOPERATIONEXCEPTION_H
 
-#include <exception>
+#include <stdexcept>
 
 namespace wg
 {
@@ -9,9 +9,9 @@ namespace wg
 	{
 		namespace exceptions
 		{
-			class UnknownOperationException : public std::exception
+			class UnknownOperationException : public std::runtime_error
 			{
-			public: UnknownOperationException(const char* msg) : std::exception(msg) {};
+			public: UnknownOperationException(const char* msg) : std::runtime_error(msg) {};
 			};
 		}
 	}
