@@ -14,39 +14,43 @@ a small example of how to create a database:
 
 and here are some samples of how to perform basic **CRUD** tasks with the database:
 
-    // create a table
-    db->create("users", [](CreateTransaction* schema)
-    {
-        schema->integer("id")->increments()->primary();
-        schema->varchar("username")->required();
-        schema->varchar("password")->required();
-	})->gaurd(); // the 'gaurd' call is optional but makes sure IF NOT EXISTS is added
-	
-	// insert a data ito the database
-	db->insert("users", [](InsertTransaction* table)
-	{
-		table->insert("username", "user1");
-		table->insert("password", "password1");
-	});
-	
-	// update the database
-	db->update("users", [](UpdateTransaction* table)
-	{
-		table->set("username", "username_1");
-		table->set("password", "password_1");
-		table->where("id", "1")->andWhere("username", "user1");
-	});
-	
-	// and of course lookup data
-	db->query([](SelectTransaction* table)
-	{
-		table->from("users");
-		table->select("username");
-	});
+```c++
+// create a table
+db->create("users", [](CreateTransaction* schema)
+{
+	schema->integer("id")->increments()->primary();
+	schema->varchar("username")->required();
+	schema->varchar("password")->required();
+})->gaurd(); // the 'gaurd' call is optional but makes sure IF NOT EXISTS is added
+
+// insert a data ito the database
+db->insert("users", [](InsertTransaction* table)
+{
+	table->insert("username", "user1");
+	table->insert("password", "password1");
+});
+
+// update the database
+db->update("users", [](UpdateTransaction* table)
+{
+	table->set("username", "username_1");
+	table->set("password", "password_1");
+	table->where("id", "1")->andWhere("username", "user1");
+});
+
+// and of course lookup data
+db->query([](SelectTransaction* table)
+{
+	table->from("users");
+	table->select("username");
+});
+```
 
 **WARNING:** please note that all changes remain in memory untill they are commited like this:
 
-    db->commit();
+```c++
+db->commit();
+```
 
 this will execute all pending transactions.
 
